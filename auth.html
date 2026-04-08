@@ -1,0 +1,1554 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>Stratvex — Sign In / Register</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500;1,600&family=Outfit:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --navy: #0b1426;
+        --navy2: #0f1d35;
+        --navy3: #162040;
+        --navy4: #1e2d4d;
+        --gold: #c9a84c;
+        --gold2: #e0bc6a;
+        --white: #f8f9fc;
+        --muted: #8892a4;
+        --border: rgba(255, 255, 255, 0.1);
+        --success: #22c55e;
+        --error: #ef4444;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: "Outfit", sans-serif;
+        background: var(--navy);
+        color: var(--white);
+        min-height: 100vh;
+        display: flex;
+      }
+
+      /* LOADER */
+      #loader {
+        position: fixed;
+        inset: 0;
+        background: var(--navy);
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 16px;
+        transition: opacity 0.5s;
+      }
+      #loader.hide {
+        opacity: 0;
+        pointer-events: none;
+      }
+      .loader-logo {
+        font-family: "Playfair Display", serif;
+        font-size: 36px;
+        letter-spacing: 3px;
+      }
+      .loader-logo span:first-child {
+        color: var(--white);
+      }
+      .loader-logo span:last-child {
+        color: var(--gold);
+      }
+      .loader-bar {
+        width: 180px;
+        height: 2px;
+        background: var(--navy3);
+        border-radius: 2px;
+        overflow: hidden;
+      }
+      .loader-bar-fill {
+        height: 100%;
+        background: var(--gold);
+        animation: load 1.2s ease forwards;
+      }
+      @keyframes load {
+        from {
+          width: 0;
+        }
+        to {
+          width: 100%;
+        }
+      }
+
+      /* LAYOUT */
+      .auth-layout {
+        display: flex;
+        width: 100%;
+        min-height: 100vh;
+      }
+      .auth-left {
+        width: 42%;
+        background: var(--navy2);
+        border-right: 1px solid var(--border);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        padding: 48px;
+        position: relative;
+        overflow: hidden;
+      }
+      .auth-left::before {
+        content: "";
+        position: absolute;
+        bottom: -100px;
+        right: -100px;
+        width: 400px;
+        height: 400px;
+        background: radial-gradient(
+          circle,
+          rgba(201, 168, 76, 0.08),
+          transparent 70%
+        );
+        border-radius: 50%;
+      }
+      .auth-right {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding: 48px;
+        overflow-y: auto;
+      }
+
+      /* LEFT PANEL */
+      .left-logo {
+        font-family: "Playfair Display", serif;
+        font-size: 28px;
+        letter-spacing: 2px;
+        text-decoration: none;
+        display: inline-block;
+      }
+      .left-logo span:first-child {
+        color: var(--white);
+      }
+      .left-logo span:last-child {
+        color: var(--gold);
+      }
+      .left-heading {
+        font-family: "Playfair Display", serif;
+        font-size: clamp(28px, 3vw, 42px);
+        line-height: 1.2;
+        margin-bottom: 16px;
+      }
+      .left-heading em {
+        color: var(--gold);
+        font-style: italic;
+      }
+      .left-sub {
+        font-size: 15px;
+        color: var(--muted);
+        line-height: 1.7;
+        margin-bottom: 40px;
+      }
+      .left-features {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+      .left-feature {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        font-size: 14px;
+        color: var(--muted);
+      }
+      .left-feature-dot {
+        width: 8px;
+        height: 8px;
+        background: var(--gold);
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+      .left-footer {
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      /* RIGHT PANEL */
+      .auth-form-wrap {
+        max-width: 480px;
+        width: 100%;
+        margin: 0 auto;
+      }
+      .auth-tabs {
+        display: flex;
+        gap: 0;
+        background: var(--navy2);
+        border-radius: 12px;
+        padding: 4px;
+        margin-bottom: 32px;
+      }
+      .auth-tab {
+        flex: 1;
+        padding: 10px;
+        text-align: center;
+        border-radius: 9px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--muted);
+        transition: 0.2s;
+      }
+      .auth-tab.active {
+        background: var(--navy3);
+        color: var(--white);
+      }
+      .form-section {
+        display: none;
+      }
+      .form-section.active {
+        display: block;
+      }
+
+      /* PROGRESS */
+      .step-progress {
+        display: flex;
+        align-items: center;
+        gap: 0;
+        margin-bottom: 32px;
+      }
+      .step-dot {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: 600;
+        background: var(--navy3);
+        color: var(--muted);
+        border: 2px solid var(--border);
+        transition: 0.3s;
+        flex-shrink: 0;
+      }
+      .step-dot.active {
+        background: var(--gold);
+        color: var(--navy);
+        border-color: var(--gold);
+      }
+      .step-dot.done {
+        background: rgba(34, 197, 94, 0.15);
+        color: var(--success);
+        border-color: var(--success);
+      }
+      .step-line {
+        flex: 1;
+        height: 2px;
+        background: var(--border);
+        transition: 0.3s;
+      }
+      .step-line.done {
+        background: var(--success);
+      }
+      .step-label {
+        font-size: 10px;
+        color: var(--muted);
+        text-align: center;
+        margin-top: 6px;
+        white-space: nowrap;
+      }
+
+      /* FIELDS */
+      .field {
+        margin-bottom: 18px;
+      }
+      .field label {
+        display: block;
+        font-size: 12px;
+        color: var(--muted);
+        margin-bottom: 6px;
+        font-weight: 500;
+        letter-spacing: 0.3px;
+      }
+      .field input,
+      .field select,
+      .field textarea {
+        width: 100%;
+        background: var(--navy2);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 13px 16px;
+        color: var(--white);
+        font-family: "Outfit", sans-serif;
+        font-size: 14px;
+        outline: none;
+        transition: 0.2s;
+      }
+      .field input:focus,
+      .field select:focus {
+        border-color: var(--gold);
+      }
+      .field input.error {
+        border-color: var(--error);
+      }
+      .field select option {
+        background: var(--navy2);
+      }
+      .field-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+      }
+      .input-wrap {
+        position: relative;
+      }
+      .input-wrap input {
+        padding-right: 44px;
+      }
+      .eye-btn {
+        position: absolute;
+        right: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        color: var(--muted);
+        cursor: pointer;
+        font-size: 16px;
+      }
+
+      /* PIN BOXES */
+      .pin-boxes {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+        margin-top: 8px;
+      }
+      .pin-box {
+        width: 56px;
+        height: 64px;
+        background: var(--navy2);
+        border: 2px solid var(--border);
+        border-radius: 12px;
+        text-align: center;
+        font-size: 28px;
+        font-weight: 700;
+        color: var(--gold);
+        outline: none;
+        font-family: "Outfit", sans-serif;
+        transition: 0.2s;
+      }
+      .pin-box:focus {
+        border-color: var(--gold);
+      }
+
+      /* CURRENCY GRID */
+      .currency-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 8px;
+        margin-top: 8px;
+      }
+      .currency-option {
+        padding: 10px 8px;
+        background: var(--navy2);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        text-align: center;
+        cursor: pointer;
+        transition: 0.2s;
+        font-size: 13px;
+      }
+      .currency-option:hover {
+        border-color: var(--gold);
+      }
+      .currency-option.selected {
+        background: rgba(201, 168, 76, 0.1);
+        border-color: var(--gold);
+        color: var(--gold);
+      }
+      .currency-symbol {
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--gold);
+      }
+      .currency-code {
+        font-size: 11px;
+        color: var(--muted);
+        margin-top: 2px;
+      }
+
+      /* ACCOUNT TYPE */
+      .account-type-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin-top: 8px;
+      }
+      .account-type-card {
+        padding: 20px;
+        background: var(--navy2);
+        border: 2px solid var(--border);
+        border-radius: 14px;
+        cursor: pointer;
+        transition: 0.2s;
+        text-align: center;
+      }
+      .account-type-card:hover,
+      .account-type-card.selected {
+        border-color: var(--gold);
+      }
+      .account-type-card.selected {
+        background: rgba(201, 168, 76, 0.08);
+      }
+      .account-type-icon {
+        font-size: 28px;
+        margin-bottom: 8px;
+      }
+      .account-type-name {
+        font-size: 15px;
+        font-weight: 600;
+        margin-bottom: 4px;
+      }
+      .account-type-desc {
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      /* PASSWORD STRENGTH */
+      .pw-strength {
+        margin-top: 8px;
+      }
+      .pw-strength-bar {
+        height: 4px;
+        border-radius: 2px;
+        background: var(--navy3);
+        margin-bottom: 6px;
+      }
+      .pw-strength-fill {
+        height: 100%;
+        border-radius: 2px;
+        transition: 0.3s;
+        width: 0;
+      }
+      .pw-strength-label {
+        font-size: 11px;
+        color: var(--muted);
+      }
+
+      /* BUTTONS */
+      .btn-primary {
+        width: 100%;
+        padding: 14px;
+        background: var(--gold);
+        color: var(--navy);
+        border: none;
+        border-radius: 10px;
+        font-size: 15px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: 0.2s;
+        font-family: "Outfit", sans-serif;
+      }
+      .btn-primary:hover {
+        background: var(--gold2);
+      }
+      .btn-secondary {
+        width: 100%;
+        padding: 14px;
+        background: transparent;
+        border: 1px solid var(--border);
+        color: var(--white);
+        border-radius: 10px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: 0.2s;
+        font-family: "Outfit", sans-serif;
+        margin-top: 10px;
+      }
+      .btn-secondary:hover {
+        border-color: var(--gold);
+        color: var(--gold);
+      }
+      .btn-row {
+        display: flex;
+        gap: 12px;
+      }
+      .btn-row .btn-secondary {
+        margin-top: 0;
+      }
+
+      /* ALERT */
+      .alert {
+        padding: 12px 16px;
+        border-radius: 10px;
+        font-size: 13px;
+        margin-bottom: 16px;
+        display: none;
+      }
+      .alert.error {
+        background: rgba(239, 68, 68, 0.1);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        color: var(--error);
+      }
+      .alert.success {
+        background: rgba(34, 197, 94, 0.1);
+        border: 1px solid rgba(34, 197, 94, 0.3);
+        color: var(--success);
+      }
+      .alert.show {
+        display: block;
+      }
+
+      /* PIN OVERLAY */
+      #pinOverlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(11, 20, 38, 0.97);
+        z-index: 800;
+        display: none;
+        align-items: center;
+        justify-content: center;
+      }
+      #pinOverlay.active {
+        display: flex;
+      }
+      .pin-overlay-box {
+        text-align: center;
+        max-width: 360px;
+        width: 100%;
+        padding: 20px;
+      }
+      .pin-overlay-logo {
+        font-family: "Playfair Display", serif;
+        font-size: 28px;
+        letter-spacing: 2px;
+        margin-bottom: 32px;
+      }
+      .pin-overlay-logo span:first-child {
+        color: var(--white);
+      }
+      .pin-overlay-logo span:last-child {
+        color: var(--gold);
+      }
+      .pin-overlay-title {
+        font-family: "Playfair Display", serif;
+        font-size: 22px;
+        margin-bottom: 8px;
+      }
+      .pin-overlay-sub {
+        font-size: 14px;
+        color: var(--muted);
+        margin-bottom: 32px;
+      }
+      .pin-overlay-error {
+        color: var(--error);
+        font-size: 13px;
+        margin-top: 16px;
+        min-height: 20px;
+      }
+
+      /* FORM TITLE */
+      .form-step-title {
+        font-family: "Playfair Display", serif;
+        font-size: 22px;
+        margin-bottom: 6px;
+      }
+      .form-step-sub {
+        font-size: 13px;
+        color: var(--muted);
+        margin-bottom: 24px;
+      }
+
+      /* TERMS */
+      .checkbox-row {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        font-size: 13px;
+        color: var(--muted);
+      }
+      .checkbox-row input[type="checkbox"] {
+        width: 16px;
+        height: 16px;
+        margin-top: 2px;
+        accent-color: var(--gold);
+      }
+      .checkbox-row a {
+        color: var(--gold);
+      }
+
+      @media (max-width: 768px) {
+        .auth-left {
+          display: none;
+        }
+        .auth-right {
+          padding: 32px 20px;
+        }
+        .field-row {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- LOADER -->
+    <div id="loader">
+      <div class="loader-logo"><span>STRAT</span><span>VEX</span></div>
+      <div class="loader-bar"><div class="loader-bar-fill"></div></div>
+    </div>
+
+    <!-- PIN OVERLAY -->
+    <div id="pinOverlay">
+      <div class="pin-overlay-box">
+        <div class="pin-overlay-logo"><span>STRAT</span><span>VEX</span></div>
+        <div class="pin-overlay-title">Enter Your PIN</div>
+        <div class="pin-overlay-sub">
+          Please enter your 4-digit transaction PIN to continue
+        </div>
+        <div class="pin-boxes">
+          <input
+            class="pin-box"
+            type="password"
+            maxlength="1"
+            id="po1"
+            oninput="pinMove(this, 'po2')"
+          />
+          <input
+            class="pin-box"
+            type="password"
+            maxlength="1"
+            id="po2"
+            oninput="pinMove(this, 'po3')"
+            onkeydown="pinBack(event, 'po1')"
+          />
+          <input
+            class="pin-box"
+            type="password"
+            maxlength="1"
+            id="po3"
+            oninput="pinMove(this, 'po4')"
+            onkeydown="pinBack(event, 'po2')"
+          />
+          <input
+            class="pin-box"
+            type="password"
+            maxlength="1"
+            id="po4"
+            oninput="submitPin()"
+            onkeydown="pinBack(event, 'po3')"
+          />
+        </div>
+        <div class="pin-overlay-error" id="pinError"></div>
+      </div>
+    </div>
+
+    <div class="auth-layout">
+      <!-- LEFT PANEL -->
+      <div class="auth-left">
+        <div>
+          <a href="index.html" class="left-logo"
+            ><span>STRAT</span><span>VEX</span></a
+          >
+        </div>
+        <div>
+          <h2 class="left-heading" id="leftHeading">
+            Invest Smarter.<br />Earn <em>More.</em><br />Live Better.
+          </h2>
+          <p class="left-sub" id="leftSub">
+            Join 50,000+ investors worldwide who trust Stratvex to grow their
+            wealth with premium investment plans returning up to 200%.
+          </p>
+          <div class="left-features">
+            <div class="left-feature">
+              <span class="left-feature-dot"></span>Up to 200% return on
+              investment
+            </div>
+            <div class="left-feature">
+              <span class="left-feature-dot"></span>6 premium investment plan
+              tiers
+            </div>
+            <div class="left-feature">
+              <span class="left-feature-dot"></span>Withdraw profits at any time
+            </div>
+            <div class="left-feature">
+              <span class="left-feature-dot"></span>Bank-grade security &
+              encryption
+            </div>
+            <div class="left-feature">
+              <span class="left-feature-dot"></span>18 currencies supported
+              globally
+            </div>
+          </div>
+        </div>
+        <div class="left-footer">
+          © 2025 Stratvex · Regulated Investment Platform
+        </div>
+      </div>
+
+      <!-- RIGHT PANEL -->
+      <div class="auth-right">
+        <div class="auth-form-wrap">
+          <!-- TABS -->
+          <div class="auth-tabs">
+            <div
+              class="auth-tab active"
+              id="tab-login"
+              onclick="switchTab('login')"
+            >
+              Sign In
+            </div>
+            <div
+              class="auth-tab"
+              id="tab-register"
+              onclick="switchTab('register')"
+            >
+              Create Account
+            </div>
+          </div>
+
+          <!-- ── LOGIN ── -->
+          <div class="form-section active" id="form-login">
+            <div class="form-step-title">Welcome Back</div>
+            <div class="form-step-sub">Sign in to your Stratvex account</div>
+            <div class="alert error" id="login-alert"></div>
+            <div class="field">
+              <label>Username or Email</label>
+              <input
+                type="text"
+                id="l-identifier"
+                placeholder="Enter username or email"
+              />
+            </div>
+            <div class="field">
+              <label>Password</label>
+              <div class="input-wrap">
+                <input
+                  type="password"
+                  id="l-password"
+                  placeholder="Enter your password"
+                  onkeydown="if (event.key === 'Enter') doLogin();"
+                />
+                <button class="eye-btn" onclick="togglePw('l-password', this)">
+                  👁
+                </button>
+              </div>
+            </div>
+            <button class="btn-primary" onclick="doLogin()">Sign In</button>
+            <p
+              style="
+                text-align: center;
+                font-size: 13px;
+                color: var(--muted);
+                margin-top: 20px;
+              "
+            >
+              Forgot password?
+              <span
+                style="color: var(--gold); cursor: pointer"
+                onclick="
+                  alert(
+                    'Please contact Admin Chat from your dashboard to reset your password.',
+                  )
+                "
+                >Contact Support</span
+              >
+            </p>
+            <p
+              style="
+                text-align: center;
+                font-size: 13px;
+                color: var(--muted);
+                margin-top: 12px;
+              "
+            >
+              Don't have an account?
+              <span
+                style="color: var(--gold); cursor: pointer"
+                onclick="switchTab('register')"
+                >Create one free</span
+              >
+            </p>
+          </div>
+
+          <!-- ── REGISTER ── -->
+          <div class="form-section" id="form-register">
+            <!-- STEP PROGRESS -->
+            <div>
+              <div class="step-progress" id="stepProgress">
+                <div
+                  style="
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                  "
+                >
+                  <div class="step-dot active" id="sd1">1</div>
+                  <div class="step-label">Personal</div>
+                </div>
+                <div class="step-line" id="sl1"></div>
+                <div
+                  style="
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                  "
+                >
+                  <div class="step-dot" id="sd2">2</div>
+                  <div class="step-label">Contact</div>
+                </div>
+                <div class="step-line" id="sl2"></div>
+                <div
+                  style="
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                  "
+                >
+                  <div class="step-dot" id="sd3">3</div>
+                  <div class="step-label">Account</div>
+                </div>
+                <div class="step-line" id="sl3"></div>
+                <div
+                  style="
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                  "
+                >
+                  <div class="step-dot" id="sd4">4</div>
+                  <div class="step-label">Security</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="alert error" id="reg-alert"></div>
+            <div class="alert success" id="reg-success"></div>
+
+            <!-- STEP 1: PERSONAL -->
+            <div id="reg-step1">
+              <div class="form-step-title">Personal Information</div>
+              <div class="form-step-sub">Tell us a bit about yourself</div>
+              <div class="field-row">
+                <div class="field">
+                  <label>First Name *</label
+                  ><input type="text" id="r-fname" placeholder="First name" />
+                </div>
+                <div class="field">
+                  <label>Middle Name</label
+                  ><input
+                    type="text"
+                    id="r-mname"
+                    placeholder="Middle name (optional)"
+                  />
+                </div>
+              </div>
+              <div class="field">
+                <label>Last Name *</label
+                ><input type="text" id="r-lname" placeholder="Last name" />
+              </div>
+              <div class="field">
+                <label>Username *</label
+                ><input
+                  type="text"
+                  id="r-username"
+                  placeholder="Choose a username"
+                  oninput="checkUsername()"
+                />
+                <div
+                  id="username-status"
+                  style="font-size: 11px; margin-top: 4px"
+                ></div>
+              </div>
+              <div class="field">
+                <label>Date of Birth</label><input type="date" id="r-dob" />
+              </div>
+              <button class="btn-primary" onclick="nextStep(1)">
+                Continue →
+              </button>
+            </div>
+
+            <!-- STEP 2: CONTACT -->
+            <div id="reg-step2" style="display: none">
+              <div class="form-step-title">Contact Details</div>
+              <div class="form-step-sub">How can we reach you?</div>
+              <div class="field">
+                <label>Email Address *</label
+                ><input
+                  type="email"
+                  id="r-email"
+                  placeholder="your@email.com"
+                  oninput="checkEmail()"
+                />
+                <div
+                  id="email-status"
+                  style="font-size: 11px; margin-top: 4px"
+                ></div>
+              </div>
+              <div class="field">
+                <label>Phone Number</label
+                ><input type="tel" id="r-phone" placeholder="+1 234 567 8900" />
+              </div>
+              <div class="field">
+                <label>Country *</label>
+                <select id="r-country">
+                  <option value="">Select your country</option>
+                  <option>United States</option>
+                  <option>United Kingdom</option>
+                  <option>Canada</option>
+                  <option>Australia</option>
+                  <option>Germany</option>
+                  <option>France</option>
+                  <option>Singapore</option>
+                  <option>United Arab Emirates</option>
+                  <option>Saudi Arabia</option>
+                  <option>South Africa</option>
+                  <option>Kenya</option>
+                  <option>Ghana</option>
+                  <option>Japan</option>
+                  <option>India</option>
+                  <option>Brazil</option>
+                  <option>Mexico</option>
+                  <option>Switzerland</option>
+                  <option>New Zealand</option>
+                  <option>Other</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>Referral Code (optional)</label
+                ><input
+                  type="text"
+                  id="r-referral"
+                  placeholder="Enter referral code if you have one"
+                />
+              </div>
+              <div class="btn-row">
+                <button class="btn-secondary" onclick="prevStep(2)">
+                  ← Back
+                </button>
+                <button class="btn-primary" onclick="nextStep(2)">
+                  Continue →
+                </button>
+              </div>
+            </div>
+
+            <!-- STEP 3: ACCOUNT -->
+            <div id="reg-step3" style="display: none">
+              <div class="form-step-title">Account Setup</div>
+              <div class="form-step-sub">Customize your investment account</div>
+              <div class="field">
+                <label>Account Type *</label>
+                <div class="account-type-grid">
+                  <div
+                    class="account-type-card selected"
+                    id="at-checking"
+                    onclick="selectAccountType('checking')"
+                  >
+                    <div class="account-type-icon">🏦</div>
+                    <div class="account-type-name">Checking</div>
+                    <div class="account-type-desc">
+                      Standard transactional account
+                    </div>
+                  </div>
+                  <div
+                    class="account-type-card"
+                    id="at-savings"
+                    onclick="selectAccountType('savings')"
+                  >
+                    <div class="account-type-icon">💰</div>
+                    <div class="account-type-name">Savings</div>
+                    <div class="account-type-desc">
+                      High-yield savings account
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="field">
+                <label>Select Currency *</label>
+                <div class="currency-grid" id="currencyGrid">
+                  <div
+                    class="currency-option selected"
+                    onclick="selectCurrency(this, 'USD')"
+                  >
+                    <div class="currency-symbol">$</div>
+                    <div class="currency-code">USD</div>
+                  </div>
+                  <div
+                    class="currency-option"
+                    onclick="selectCurrency(this, 'GBP')"
+                  >
+                    <div class="currency-symbol">£</div>
+                    <div class="currency-code">GBP</div>
+                  </div>
+                  <div
+                    class="currency-option"
+                    onclick="selectCurrency(this, 'EUR')"
+                  >
+                    <div class="currency-symbol">€</div>
+                    <div class="currency-code">EUR</div>
+                  </div>
+                  <div
+                    class="currency-option"
+                    onclick="selectCurrency(this, 'AUD')"
+                  >
+                    <div class="currency-symbol">A$</div>
+                    <div class="currency-code">AUD</div>
+                  </div>
+                  <div
+                    class="currency-option"
+                    onclick="selectCurrency(this, 'CAD')"
+                  >
+                    <div class="currency-symbol">C$</div>
+                    <div class="currency-code">CAD</div>
+                  </div>
+                  <div
+                    class="currency-option"
+                    onclick="selectCurrency(this, 'CHF')"
+                  >
+                    <div class="currency-symbol">Fr</div>
+                    <div class="currency-code">CHF</div>
+                  </div>
+                  <div
+                    class="currency-option"
+                    onclick="selectCurrency(this, 'JPY')"
+                  >
+                    <div class="currency-symbol">¥</div>
+                    <div class="currency-code">JPY</div>
+                  </div>
+                  <div
+                    class="currency-option"
+                    onclick="selectCurrency(this, 'AED')"
+                  >
+                    <div class="currency-symbol">د</div>
+                    <div class="currency-code">AED</div>
+                  </div>
+                  <div
+                    class="currency-option"
+                    onclick="selectCurrency(this, 'SAR')"
+                  >
+                    <div class="currency-symbol">﷼</div>
+                    <div class="currency-code">SAR</div>
+                  </div>
+                  <div
+                    class="currency-option"
+                    onclick="selectCurrency(this, 'SGD')"
+                  >
+                    <div class="currency-symbol">S$</div>
+                    <div class="currency-code">SGD</div>
+                  </div>
+                  <div
+                    class="currency-option"
+                    onclick="selectCurrency(this, 'ZAR')"
+                  >
+                    <div class="currency-symbol">R</div>
+                    <div class="currency-code">ZAR</div>
+                  </div>
+                  <div
+                    class="currency-option"
+                    onclick="selectCurrency(this, 'GHS')"
+                  >
+                    <div class="currency-symbol">₵</div>
+                    <div class="currency-code">GHS</div>
+                  </div>
+                  <div
+                    class="currency-option"
+                    onclick="selectCurrency(this, 'KES')"
+                  >
+                    <div class="currency-symbol">K</div>
+                    <div class="currency-code">KES</div>
+                  </div>
+                  <div
+                    class="currency-option"
+                    onclick="selectCurrency(this, 'INR')"
+                  >
+                    <div class="currency-symbol">₹</div>
+                    <div class="currency-code">INR</div>
+                  </div>
+                  <div
+                    class="currency-option"
+                    onclick="selectCurrency(this, 'BRL')"
+                  >
+                    <div class="currency-symbol">R$</div>
+                    <div class="currency-code">BRL</div>
+                  </div>
+                  <div
+                    class="currency-option"
+                    onclick="selectCurrency(this, 'NZD')"
+                  >
+                    <div class="currency-symbol">NZ$</div>
+                    <div class="currency-code">NZD</div>
+                  </div>
+                </div>
+              </div>
+              <div class="field" style="margin-top: 20px">
+                <label>Create Transaction PIN *</label>
+                <div class="pin-boxes">
+                  <input
+                    class="pin-box"
+                    type="password"
+                    maxlength="1"
+                    id="rp1"
+                    oninput="pinMove(this, 'rp2')"
+                  />
+                  <input
+                    class="pin-box"
+                    type="password"
+                    maxlength="1"
+                    id="rp2"
+                    oninput="pinMove(this, 'rp3')"
+                    onkeydown="pinBack(event, 'rp1')"
+                  />
+                  <input
+                    class="pin-box"
+                    type="password"
+                    maxlength="1"
+                    id="rp3"
+                    oninput="pinMove(this, 'rp4')"
+                    onkeydown="pinBack(event, 'rp2')"
+                  />
+                  <input
+                    class="pin-box"
+                    type="password"
+                    maxlength="1"
+                    id="rp4"
+                    onkeydown="pinBack(event, 'rp3')"
+                  />
+                </div>
+              </div>
+              <div class="btn-row" style="margin-top: 24px">
+                <button class="btn-secondary" onclick="prevStep(3)">
+                  ← Back
+                </button>
+                <button class="btn-primary" onclick="nextStep(3)">
+                  Continue →
+                </button>
+              </div>
+            </div>
+
+            <!-- STEP 4: SECURITY -->
+            <div id="reg-step4" style="display: none">
+              <div class="form-step-title">Security Setup</div>
+              <div class="form-step-sub">
+                Create a strong password for your account
+              </div>
+              <div class="field">
+                <label>Password *</label>
+                <div class="input-wrap">
+                  <input
+                    type="password"
+                    id="r-password"
+                    placeholder="Create a strong password"
+                    oninput="checkPwStrength(this.value)"
+                  />
+                  <button
+                    class="eye-btn"
+                    onclick="togglePw('r-password', this)"
+                  >
+                    👁
+                  </button>
+                </div>
+                <div class="pw-strength">
+                  <div class="pw-strength-bar">
+                    <div class="pw-strength-fill" id="pwFill"></div>
+                  </div>
+                  <div class="pw-strength-label" id="pwLabel">
+                    Enter password
+                  </div>
+                </div>
+              </div>
+              <div class="field">
+                <label>Confirm Password *</label>
+                <div class="input-wrap">
+                  <input
+                    type="password"
+                    id="r-confirm"
+                    placeholder="Confirm your password"
+                    oninput="checkPwMatch()"
+                  />
+                  <button class="eye-btn" onclick="togglePw('r-confirm', this)">
+                    👁
+                  </button>
+                </div>
+                <div
+                  id="pw-match-msg"
+                  style="font-size: 11px; margin-top: 4px"
+                ></div>
+              </div>
+              <div class="field">
+                <div class="checkbox-row">
+                  <input type="checkbox" id="r-terms" />
+                  <label for="r-terms"
+                    >I agree to the <a href="#">Terms of Service</a> and
+                    <a href="#">Privacy Policy</a></label
+                  >
+                </div>
+              </div>
+              <div class="btn-row">
+                <button class="btn-secondary" onclick="prevStep(4)">
+                  ← Back
+                </button>
+                <button class="btn-primary" onclick="doRegister()">
+                  Create Account
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const API = "https://stratvex-admin.onrender.com/api";
+      let regData = { account_type: "checking", currency: "USD" };
+      let currentUserIdentifier = "";
+
+      // LOADER
+      window.addEventListener("load", () => {
+        setTimeout(() => {
+          document.getElementById("loader").classList.add("hide");
+        }, 1000);
+        const params = new URLSearchParams(window.location.search);
+        if (params.get("mode") === "register") switchTab("register");
+        const token = localStorage.getItem("stratvex_token");
+        if (token) window.location.href = "dashboard.html";
+      });
+
+      // TAB SWITCH
+      function switchTab(tab) {
+        document
+          .querySelectorAll(".auth-tab")
+          .forEach((t) => t.classList.remove("active"));
+        document
+          .querySelectorAll(".form-section")
+          .forEach((f) => f.classList.remove("active"));
+        document.getElementById("tab-" + tab).classList.add("active");
+        document.getElementById("form-" + tab).classList.add("active");
+        if (tab === "login") {
+          document.getElementById("leftHeading").innerHTML =
+            "Welcome<br/>Back to <em>Stratvex</em>";
+          document.getElementById("leftSub").textContent =
+            "Sign in to your account to manage your investments and monitor your portfolio performance.";
+        } else {
+          document.getElementById("leftHeading").innerHTML =
+            "Invest Smarter.<br/>Earn <em>More.</em><br/>Live Better.";
+          document.getElementById("leftSub").textContent =
+            "Join 50,000+ investors worldwide who trust Stratvex to grow their wealth with premium investment plans returning up to 200%.";
+        }
+      }
+
+      // STEP NAVIGATION
+      function nextStep(step) {
+        if (!validateStep(step)) return;
+        document.getElementById("reg-step" + step).style.display = "none";
+        document.getElementById("reg-step" + (step + 1)).style.display =
+          "block";
+        document.getElementById("sd" + step).className = "step-dot done";
+        document.getElementById("sd" + step).textContent = "✓";
+        document.getElementById("sl" + step).className = "step-line done";
+        document.getElementById("sd" + (step + 1)).className =
+          "step-dot active";
+      }
+      function prevStep(step) {
+        document.getElementById("reg-step" + step).style.display = "none";
+        document.getElementById("reg-step" + (step - 1)).style.display =
+          "block";
+        document.getElementById("sd" + step).className = "step-dot";
+        document.getElementById("sd" + step).textContent = step;
+      }
+
+      function validateStep(step) {
+        if (step === 1) {
+          if (!v("r-fname") || !v("r-lname") || !v("r-username")) {
+            showAlert("reg", "Please fill all required fields");
+            return false;
+          }
+          if (v("r-username").length < 3) {
+            showAlert("reg", "Username must be at least 3 characters");
+            return false;
+          }
+        }
+        if (step === 2) {
+          if (!v("r-email") || !v("r-country")) {
+            showAlert("reg", "Please fill all required fields");
+            return false;
+          }
+          if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v("r-email"))) {
+            showAlert("reg", "Please enter a valid email address");
+            return false;
+          }
+        }
+        if (step === 3) {
+          const pin = [v("rp1"), v("rp2"), v("rp3"), v("rp4")].join("");
+          if (pin.length !== 4 || !/^\d{4}$/.test(pin)) {
+            showAlert("reg", "Please enter a 4-digit PIN");
+            return false;
+          }
+        }
+        hideAlert("reg");
+        return true;
+      }
+
+      function v(id) {
+        return (document.getElementById(id)?.value || "").trim();
+      }
+
+      // CURRENCY & ACCOUNT TYPE
+      function selectCurrency(el, code) {
+        document
+          .querySelectorAll(".currency-option")
+          .forEach((c) => c.classList.remove("selected"));
+        el.classList.add("selected");
+        regData.currency = code;
+      }
+      function selectAccountType(type) {
+        document
+          .querySelectorAll(".account-type-card")
+          .forEach((c) => c.classList.remove("selected"));
+        document.getElementById("at-" + type).classList.add("selected");
+        regData.account_type = type;
+      }
+
+      // USERNAME / EMAIL CHECK
+      let usernameTimer, emailTimer;
+      async function checkUsername() {
+        clearTimeout(usernameTimer);
+        const un = v("r-username");
+        const el = document.getElementById("username-status");
+        if (un.length < 3) {
+          el.textContent = "";
+          return;
+        }
+        usernameTimer = setTimeout(async () => {
+          const r = await fetch(
+            `${API}/auth/check-username/${encodeURIComponent(un)}`,
+          );
+          const d = await r.json();
+          el.textContent = d.available
+            ? "✓ Username available"
+            : "✗ Username taken";
+          el.style.color = d.available ? "var(--success)" : "var(--error)";
+        }, 500);
+      }
+      async function checkEmail() {
+        clearTimeout(emailTimer);
+        const em = v("r-email");
+        const el = document.getElementById("email-status");
+        if (em.length < 5) {
+          el.textContent = "";
+          return;
+        }
+        emailTimer = setTimeout(async () => {
+          const r = await fetch(
+            `${API}/auth/check-email/${encodeURIComponent(em)}`,
+          );
+          const d = await r.json();
+          el.textContent = d.available
+            ? "✓ Email available"
+            : "✗ Email already registered";
+          el.style.color = d.available ? "var(--success)" : "var(--error)";
+        }, 500);
+      }
+
+      // PASSWORD STRENGTH
+      function checkPwStrength(pw) {
+        let score = 0;
+        if (pw.length >= 8) score++;
+        if (/[A-Z]/.test(pw)) score++;
+        if (/[0-9]/.test(pw)) score++;
+        if (/[^A-Za-z0-9]/.test(pw)) score++;
+        const colors = [
+          "var(--error)",
+          "var(--warning)",
+          "var(--info)",
+          "var(--success)",
+        ];
+        const labels = ["Weak", "Fair", "Good", "Strong"];
+        const widths = ["25%", "50%", "75%", "100%"];
+        document.getElementById("pwFill").style.width = pw.length
+          ? widths[score - 1] || "10%"
+          : "0";
+        document.getElementById("pwFill").style.background =
+          colors[score - 1] || "var(--muted)";
+        document.getElementById("pwLabel").textContent = pw.length
+          ? labels[score - 1] || "Very Weak"
+          : "Enter password";
+      }
+      function checkPwMatch() {
+        const pw = v("r-password"),
+          c = v("r-confirm");
+        const el = document.getElementById("pw-match-msg");
+        if (!c) {
+          el.textContent = "";
+          return;
+        }
+        el.textContent =
+          pw === c ? "✓ Passwords match" : "✗ Passwords do not match";
+        el.style.color = pw === c ? "var(--success)" : "var(--error)";
+      }
+
+      // TOGGLE PASSWORD
+      function togglePw(id, btn) {
+        const el = document.getElementById(id);
+        el.type = el.type === "password" ? "text" : "password";
+        btn.textContent = el.type === "password" ? "👁" : "🙈";
+      }
+
+      // PIN MOVEMENT
+      function pinMove(el, nextId) {
+        if (el.value.length === 1 && nextId) {
+          document.getElementById(nextId).focus();
+        }
+      }
+      function pinBack(e, prevId) {
+        if (e.key === "Backspace" && !e.target.value)
+          document.getElementById(prevId)?.focus();
+      }
+
+      // ALERTS
+      function showAlert(form, msg, type = "error") {
+        const el = document.getElementById(
+          form === "reg" ? "reg-alert" : "login-alert",
+        );
+        el.textContent = msg;
+        el.className = `alert ${type} show`;
+        setTimeout(() => el.classList.remove("show"), 5000);
+      }
+      function hideAlert(form) {
+        document
+          .getElementById(form === "reg" ? "reg-alert" : "login-alert")
+          .classList.remove("show");
+      }
+
+      // LOGIN
+      async function doLogin() {
+        const identifier = v("l-identifier");
+        const password = document.getElementById("l-password").value;
+        if (!identifier || !password) {
+          showAlert("login", "Please enter your credentials");
+          return;
+        }
+        try {
+          const r = await fetch(`${API}/auth/login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ identifier, password }),
+          });
+          const d = await r.json();
+          if (!r.ok) {
+            showAlert("login", d.error || "Login failed");
+            return;
+          }
+          localStorage.setItem("stratvex_token", d.token);
+          localStorage.setItem("stratvex_user", JSON.stringify(d.user));
+          currentUserIdentifier = identifier;
+          if (d.user.pin_hash !== undefined) {
+            showPinOverlay(identifier, d);
+          } else {
+            window.location.href = "dashboard.html";
+          }
+        } catch (e) {
+          showAlert("login", "Connection failed. Check your connection.");
+        }
+      }
+
+      // PIN OVERLAY
+      function showPinOverlay(identifier, loginData) {
+        document.getElementById("pinOverlay").classList.add("active");
+        document.getElementById("po1").value = "";
+        document.getElementById("po2").value = "";
+        document.getElementById("po3").value = "";
+        document.getElementById("po4").value = "";
+        setTimeout(() => document.getElementById("po1").focus(), 100);
+        window._pendingLogin = { identifier, data: loginData };
+      }
+      async function submitPin() {
+        const pin = ["po1", "po2", "po3", "po4"]
+          .map((id) => document.getElementById(id).value)
+          .join("");
+        if (pin.length !== 4) return;
+        try {
+          const r = await fetch(`${API}/auth/verify-pin`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ identifier: currentUserIdentifier, pin }),
+          });
+          const d = await r.json();
+          if (!r.ok) {
+            document.getElementById("pinError").textContent =
+              "Incorrect PIN. Please try again.";
+            ["po1", "po2", "po3", "po4"].forEach((id) => {
+              document.getElementById(id).value = "";
+            });
+            document.getElementById("po1").focus();
+            return;
+          }
+          window.location.href = "dashboard.html";
+        } catch (e) {
+          document.getElementById("pinError").textContent =
+            "Error. Please try again.";
+        }
+      }
+
+      // REGISTER
+      async function doRegister() {
+        const password = document.getElementById("r-password").value;
+        const confirm = document.getElementById("r-confirm").value;
+        if (!password || password.length < 8) {
+          showAlert("reg", "Password must be at least 8 characters");
+          return;
+        }
+        if (password !== confirm) {
+          showAlert("reg", "Passwords do not match");
+          return;
+        }
+        if (!document.getElementById("r-terms").checked) {
+          showAlert("reg", "Please accept the Terms and Conditions");
+          return;
+        }
+        const pin = [v("rp1"), v("rp2"), v("rp3"), v("rp4")].join("");
+        const payload = {
+          first_name: v("r-fname"),
+          middle_name: v("r-mname"),
+          last_name: v("r-lname"),
+          username: v("r-username"),
+          email: v("r-email"),
+          phone: v("r-phone"),
+          country: v("r-country"),
+          date_of_birth: v("r-dob"),
+          referral_code: v("r-referral"),
+          account_type: regData.account_type,
+          currency: regData.currency,
+          password,
+          pin,
+        };
+        try {
+          const r = await fetch(`${API}/auth/register`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+          const d = await r.json();
+          if (!r.ok) {
+            showAlert("reg", d.error || "Registration failed");
+            return;
+          }
+          localStorage.setItem("stratvex_token", d.token);
+          localStorage.setItem("stratvex_user", JSON.stringify(d.user));
+          const successEl = document.getElementById("reg-success");
+          successEl.textContent =
+            "Account created successfully! Redirecting...";
+          successEl.classList.add("show");
+          setTimeout(() => (window.location.href = "dashboard.html"), 1500);
+        } catch (e) {
+          showAlert("reg", "Connection failed. Please try again.");
+        }
+      }
+    </script>
+  </body>
+</html>
